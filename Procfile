@@ -1,1 +1,1 @@
-web: sigsci/bin/sigsci-start
+web: sigsci/bin/sigsci-start nginx -g 'daemon off;'
