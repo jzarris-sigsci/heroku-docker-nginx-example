@@ -1,1 +1,1 @@
-web: sigsci/bin/sigsci-start nginx
+web: sigsci/bin/sigsci-start
