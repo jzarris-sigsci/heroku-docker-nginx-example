@@ -20,12 +20,9 @@ RUN apt-get -y install sigsci-agent
 
 RUN  mkdir /app && mkdir /etc/sigsci
 COPY agent-reverse-proxy.conf /etc/sigsci/agent.conf
-COPY app/nginx.conf /etc/nginx/nginx.conf
-COPY app/default.conf /etc/nginx/sites-enabled/default.conf
-COPY app/index.html /usr/share/nginx/html/index.html
-COPY app/shopping.html /usr/share/nginx/html/shopping.html
-COPY app/aboutus.html /usr/share/nginx/html/aboutus.html
-COPY app/contact.html /usr/share/nginx/html/contact.html
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY default.conf /etc/nginx/sites-enabled/default.conf
+COPY index.html /usr/share/nginx/html/index.html
 COPY start.sh /app/start.sh
 RUN chmod +x /app/start.sh
 
