@@ -1,3 +1,5 @@
 build:
   docker:
-    web: sigsci/bin/sigsci-start Dockerfile
+    web: Dockerfile
+run:
+  web: sigsci/bin/sigsci-start
