@@ -1,8 +1,149 @@
 server {
-  listen $PORT default_server;
+    listen       80;
+    server_name  localhost host.docker.internal;
 
-  location / {
-    root   /usr/share/nginx/html;
-    index  index.html index.htm;
-  }
+    # Look for GOOGLE in X-Sigsci-Tags
+    #if ($http_x_sigsci-tags = "NOUA") {
+    #   return 301 https://example.com;
+    # }
+
+    location / {
+
+        # return 200 for any request for /document[[a-z].php
+        # this allows simulated document link enumeration
+        rewrite  ^/documents/[a-z]+.php$ /index.html last;
+
+        # indeed test
+        rewrite  ^/p/abd-abd123 /index.html last;
+
+        # return 200 for any request for /api/[a-zA-Z0-9]
+        # this allows simulated velocity abuse of API requests
+        rewrite  ^/api/[a-zA-Z0-9]+$ /index.html last;
+
+        # view order success and failure
+        # this allows you to simulate enumberation attacks where some requests
+        # are for valid object IDs that return a 200 and others are invalid and return a 500
+
+        # if the viewOrder and account tokens begin with 16 upper or lower case alpha characters
+        # and then 16 numerical characters then the tokens are valid
+        # then the index page and 200 response code is returned
+
+        #rewrite  "^/viewOrder/token/[a-zA-Z]{16}[0-9]{1,5}/account/token/[a-zA-Z]{16}[0-9]{1,5}$" /index.html last;
+
+        #***BEGIN shopping cart checkout section***
+        if ( $request_uri ~ "^/tc-checkout/return.*cc=[0-9]{15}9.*cvv=[0-9]{2}9" ) {
+               return 302 "/tc-checkout/error?PAYMENT_PROCESSING_ERROR=payment.multipleErrors";
+        }
+
+        if ( $request_uri ~ "^/tc-checkout/return.*zip=[0-9]{4}9" ) {
+               return 302 "/tc-checkout/error?PAYMENT_PROCESSING_ERROR=creditCard.avs.invalid";
+        }
+        
+        if ( $request_uri ~ "^/tc-checkout/return.*cvv=[0-9]{2}9" ) {
+               return 302 "/tc-checkout/error?PAYMENT_PROCESSING_ERROR=creditCard.cvvCode.invalid";
+        }
+
+        if ( $request_uri ~ "^/tc-checkout/return*" ) {
+               return 302 "/tc-checkout/error?PAYMENT_PROCESSING_ERROR=creditCard.cvvCode.invalid";
+        }
+        #***END shopping cart checkout section***
+
+        #if ( $request_uri ~ "^/viewOrder/token/[a-zA-Z]{16}[0-9]{1,5}/account/token/[a-zA-Z]{16}[0-9]{1,5}$" ) {
+        #          add_header Token "1234";
+        #       return 200 "<b>Order Found!.</b>";
+        #}
+
+        # Look for logins that have crossed a rate limit
+        # return a 200 a custom message rather than returning a 406 block
+        if ($http_x_sigsci_tags ~ "^.*login-rl.*rate-limit") {
+          return 200  "<b>Whoa! Slow down there buddy!  Try again in 10 minutes please.</b>";
+        }
+
+        # login
+        if ( $request_uri ~ "^/login*" ) {
+               return 302 "/dashboard";
+        }
+
+        # if the viewOrder and account tokens begin with 16 numerical characters
+        # and then 16 upper or lower case alpha characters then the tokens are invalid
+        # then a 500 response code is returned with a message
+
+
+        # view order success and failure
+        rewrite  "^/viewOrder/token/[a-zA-Z]{16}[0-9]{16}/false/[a-zA-Z]{16}[0-9]{16}$" /index.html last;
+
+        if ( $request_uri ~ "/viewOrder/token/[0-9]{16}[a-zA-Z]{16}/false/[0-9]{16}[a-zA-Z]{16}" ) {
+                return 500 "<b>Whoa! 500 couldn't find it.</b>";
+        }
+
+        rewrite  "^/viewOrder/token/[a-zA-Z]{16}[0-9]{16}/user/[a-zA-Z]{16}[0-9]{16}$" /index.html last;
+
+        if ( $request_uri ~ "/viewOrder/token/[0-9]{16}[a-zA-Z]{16}/user/[0-9]{16}[a-zA-Z]{16}" ) {
+                     return 500 "<b>Whoa! 500 couldn't find it.</b>";
+        }
+
+        # view ClaimAdjustmentNotes API success and failure
+                rewrite  "^/api/patients/[a-zA-Z]{16}[0-9]{16,21}/[a-zA-Z]{16}[0-9]{16}/claims/[a-zA-Z]{16}[0-9]{16,21}/adjustmentNotes$" /index.html last;
+
+        if ( $request_uri ~ "/api/patients/[0-9]{16,21}[a-zA-Z]{16}/[0-9]{16,21}[a-zA-Z]{16}/claims/[0-9]{16,21}[a-zA-Z]{16}/adjustmentNotes" ) {
+                return 403 "<b>Forbidden.</b>";
+        }
+
+        # Conagra view invoice success and failure
+                rewrite  "^/api/vendor/[a-zA-Z0-9]{31}[0-9]{1}/invoice/[a-zA-Z0-9]{31}[0-9]{1}$" /index.html last;
+
+        if ( $request_uri ~ "^/api/vendor/[a-zA-Z0-9]{31}[a-zA-Z]{1}/invoice/[a-zA-Z0-9]{31}[a-zA-Z]{1}$" ) {
+                return 403 "<b>Forbidden.</b>";
+        }
+
+        # Coles API 400 rate limiting
+        if ( $request_uri ~ "/api/v3/*" ) {
+                return 400 "<b>Bad Request.</b>";
+        }
+
+        # login simulator
+        #rewrite ^/login /index.html last;
+
+        if ( $request_method = POST ) {
+                set $login "POST";
+        }
+
+        if ( $request_uri ~ /login\?.* ) {
+                set $login "${login}+login";
+        }
+
+        if ( $arg_password = "test123" ) {
+                set $login "${login}+password";
+        }
+
+        if ( $login = "POST+login+password" ) {
+                #rewrite_by_lua_block {
+                #        sigsci.prerequest()
+                                #        return ngx.redirect("$host:4000/index.html")
+                #}
+                return 302 "/index.html";
+                #return 200 $login;
+        }
+
+        if ($login = "POST+login") {
+                #rewrite_by_lua_block {
+                #        sigsci.prerequest()
+                #        return ngx.exit(200)
+                #}
+                return 200 $login;
+        }
+
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+
+   }
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
 }
