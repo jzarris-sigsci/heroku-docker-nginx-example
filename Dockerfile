@@ -2,7 +2,7 @@ FROM debian:8
 
 # initial setup
 RUN apt-get update
-RUN apt-get install -y apt-transport-https wget sed curl gnupg
+RUN apt-get install -y apt-transport-https wget sed curl gnupg gettext-base
 
 # add the signal sciences repo to our apt sources
 RUN wget -qO - https://apt.signalsciences.net/release/gpgkey | apt-key add -
