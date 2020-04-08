@@ -19,8 +19,10 @@ RUN apt-get -y install sigsci-agent
 # install the sigsci module
 RUN apt-get -y install nginx-module-sigsci-nxo=1.17.9*
 
+#agent config coming from heroku env variables
 #RUN  mkdir /app && mkdir /etc/sigsci
-#COPY agent-reverse-proxy.conf /etc/sigsci/agent.conf
+#COPY agent.conf /etc/sigsci/agent.conf
+
 COPY nginx.conf /etc/nginx/nginx.conf
 COPY default.conf /etc/nginx/sites-enabled/default.conf
 COPY index.html /usr/share/nginx/html/index.html
