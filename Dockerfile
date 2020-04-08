@@ -11,12 +11,12 @@ RUN apt-get update
 RUN wget -qO - https://apt.signalsciences.net/nginx/gpg.key | apt-key add -
 RUN echo "deb https://apt.signalsciences.net/nginx/distro jessie main" > /etc/apt/sources.list.d/sigsci-nginx.list
 RUN apt-get update
-RUN apt-get -y install nginx
+RUN apt-get -y install nginx 1.6.2*
 
 # install and configure the sigsci agent
 RUN apt-get -y install sigsci-agent
 # install the sigsci module
-#RUN apt-get -y install sigsci-module-nginx
+RUN apt-get -y install nginx-module-sigsci-nxo=1.6.2*
 
 RUN  mkdir /app && mkdir /etc/sigsci
 COPY agent-reverse-proxy.conf /etc/sigsci/agent.conf
