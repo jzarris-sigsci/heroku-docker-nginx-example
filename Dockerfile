@@ -9,8 +9,8 @@ RUN apt-get install -y apt-transport-https wget sed curl gnupg gettext-base
 RUN wget -qO - https://apt.signalsciences.net/release/gpgkey | apt-key add -
 RUN echo "deb https://apt.signalsciences.net/release/debian/ buster main" > /etc/apt/sources.list.d/sigsci-release.list
 RUN apt-get update
-RUN wget -qO - https://apt.signalsciences.net/nginx/gpg.key | apt-key add -
-RUN echo "deb https://apt.signalsciences.net/nginx/distro buster main" > /etc/apt/sources.list.d/sigsci-nginx.list
+#RUN wget -qO - https://apt.signalsciences.net/nginx/gpg.key | apt-key add -
+#RUN echo "deb https://apt.signalsciences.net/nginx/distro buster main" > /etc/apt/sources.list.d/sigsci-nginx.list
 RUN apt-get update
 #RUN apt-get -y install nginx 1.17.9*
 
